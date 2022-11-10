@@ -84,32 +84,7 @@ template MinInRangeIndexIgnore(D, N, numBits) {
 }
 
 // TODO: can this circuit be laid out more efficiently because c[D] is not some arbitrary point?
-template Attack(D,N,DAMAGE,numBits) {
-    signal input index;         // The index we want to ignore
-    signal input c[D];          // The centre of the circle
-    signal input r;             // The radius of the circle
-    signal input healths[N];    // The health of each unit
-    signal input ps[N][D];      // The position of each unit
-    signal output newHealths[N];
-    
-    // We loop once to find the closest unit
-    // Then loop to find the closest unit and damage it's health.
-    component closestUnit = MinInRangeIndexIgnore(D,N,numBits);
-    closestUnit.index <== index;
-    closestUnit.c <== c;
-    closestUnit.r <== r;
-    closestUnit.ps <== ps;
-    
-    component isIndex[N];
 
-    for (var i=0; i < N; i++) {
-        isIndex[i] = IsEqual();
-        isIndex[i].in[0] <== i;
-        isIndex[i].in[1] <== closestUnit.minIndex;
-
-        newHealths[i] <== healths[i] - (isIndex[i].out * DAMAGE);
-    }
-}
 
 /*  
     Given a set of units (represented by `healths` and `ps`), 
@@ -121,37 +96,48 @@ template Attack(D,N,DAMAGE,numBits) {
     RADIUS is the attack range of each unit
     numBits is the number of bits used to represent healths and positions
 */
-template AttackMulti(D,N,DAMAGE,RADIUS,numBits) {
+template Attack(D,N,DAMAGE,RADIUS,numBits) {
     signal input healths[N];    // The health of each unit
     signal input ps[N][D];      // The position of each unit
+    signal newHealthsAccum[N][N];
     signal output newHealths[N];
     
     component attacks[N];
     component isHealthPositive[N];
     component multiMux[N];
-
+    component closestUnit[N];
+    component isIndexes[N][N];
+    component shouldDecreaseHealth[N][N];
+    
     for (var i=0; i < N; i++) {
-        attacks[i] = Attack(D,N,DAMAGE,numBits);
-        attacks[i].index <== i;
-        attacks[i].c <== ps[i];
-        attacks[i].r <== RADIUS;
-        attacks[i].healths <== i == 0 ? healths : attacks[i-1].newHealths;
-        attacks[i].ps <== ps;
-
         isHealthPositive[i] = GreaterThan(numBits);
         isHealthPositive[i].in[0] <== healths[i];
         isHealthPositive[i].in[1] <== 0;
 
-        multiMux[i] = MultiMux1(N);
+        closestUnit[i] = MinInRangeIndexIgnore(D,N,numBits);
+        closestUnit[i].index <== i;
+        closestUnit[i].c <== ps[i];
+        closestUnit[i].r <== RADIUS;
+        closestUnit[i].ps <== ps;
+
         for (var j=0; j < N; j++) {
-            multiMux[i].c[j][0] <== i == 0 ? healths[j] : multiMux[i-1].out[j];
-            multiMux[i].c[j][1] <== attacks[i].newHealths[j];
+            isIndexes[i][j] = IsEqual();
+            isIndexes[i][j].in[0] <== j;
+            isIndexes[i][j].in[1] <== closestUnit[i].minIndex;
+
+            shouldDecreaseHealth[i][j] = AND();
+            shouldDecreaseHealth[i][j].a <== isHealthPositive[i].out;
+            shouldDecreaseHealth[i][j].b <== isIndexes[i][j].out;
+
+            newHealthsAccum[i][j] <== (i==0 ? healths[j] : newHealthsAccum[i-1][j]) - shouldDecreaseHealth[i][j].out * DAMAGE;
         }
-        multiMux[i].s <== isHealthPositive[i].out;
     }
 
-    newHealths <== multiMux[N-1].out;
+    newHealths <== newHealthsAccum[N-1];
 }
 
-component main = AttackMulti(3, 5, 5, 10, 32);
+component main = Attack(3, 5, 5, 10, 32);
+
+
+
 
