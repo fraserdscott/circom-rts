@@ -61,7 +61,7 @@ describe("attack circuit", () => {
   });
 
   it("has the correct output", async () => {
-    const expected = { newHealths: [2,5,140,70,45] };
+    const expected = { newHealths: [2, 5, 140, 70, 45] };
     const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
     await circuit.assertOut(witness, expected);
   });

@@ -18,41 +18,39 @@ template SquareSum(D) {
 }
 
 // Uses https://math.stackexchange.com/questions/3118238/check-if-3d-point-is-inside-sphere
-template MinInRangeIndexIgnore(D, N, numBits) {
+template MinInRangeIndexIgnore(D, N, RADIUS, numBits) {
     signal input index;     // The index we want to ignore
     signal input c[D];      // The centre of the circle
     signal input ps[N][D];  // The points we are checking
-    signal input r;         // The radius of the circle
-    signal minAccum[N];
-    signal minIndexAccum[N];
     signal output minIndex;
 
     component squareSums[N];
-    component isInside[N];
+    component lessThanRadius2[N];
     component lessThanMax[N];
     component isIndex[N];
     component isNotIndex[N];
-    component inRangesANDlessThanMax[N];
+    component lessThanRadius2ANDLessThanMax[N];
     component inRangesANDlessThanMaxANDNotIgnore[N];
     component mux[N];
     component muxIndex[N];
 
     for (var i=0; i < N; i++) {
+      var prev = i == 0 ? 2**numBits : mux[i-1].out;
         squareSums[i] = SquareSum(D);
         squareSums[i].a <== c;
         squareSums[i].b <== ps[i];
 
-        isInside[i] = LessThan(numBits);
-        isInside[i].in[0] <== squareSums[i].out;
-        isInside[i].in[1] <== r * r;
+        lessThanRadius2[i] = LessThan(numBits);
+        lessThanRadius2[i].in[0] <== squareSums[i].out;
+        lessThanRadius2[i].in[1] <== RADIUS * RADIUS;
 
         lessThanMax[i] = LessThan(numBits);
         lessThanMax[i].in[0] <== squareSums[i].out;
-        lessThanMax[i].in[1] <== i == 0 ? 2**numBits : minAccum[i-1];
+        lessThanMax[i].in[1] <== prev;
 
-        inRangesANDlessThanMax[i] = AND();
-        inRangesANDlessThanMax[i].a <== isInside[i].out;
-        inRangesANDlessThanMax[i].b <== lessThanMax[i].out;
+        lessThanRadius2ANDLessThanMax[i] = AND();
+        lessThanRadius2ANDLessThanMax[i].a <== lessThanRadius2[i].out;
+        lessThanRadius2ANDLessThanMax[i].b <== lessThanMax[i].out;
 
         isIndex[i] = IsEqual();
         isIndex[i].in[0] <== i;
@@ -62,25 +60,21 @@ template MinInRangeIndexIgnore(D, N, numBits) {
         isNotIndex[i].in <== isIndex[i].out;
 
         inRangesANDlessThanMaxANDNotIgnore[i] = AND();
-        inRangesANDlessThanMaxANDNotIgnore[i].a <== inRangesANDlessThanMax[i].out;
+        inRangesANDlessThanMaxANDNotIgnore[i].a <== lessThanRadius2ANDLessThanMax[i].out;
         inRangesANDlessThanMaxANDNotIgnore[i].b <== isNotIndex[i].out;
 
         mux[i] = Mux1();
-        mux[i].c[0] <== i == 0 ? 2**numBits : minAccum[i-1];
+        mux[i].c[0] <== prev;
         mux[i].c[1] <== squareSums[i].out;
         mux[i].s <== inRangesANDlessThanMaxANDNotIgnore[i].out;
 
         muxIndex[i] = Mux1();
-        muxIndex[i].c[0] <== i == 0 ? N : minIndexAccum[i-1];
+        muxIndex[i].c[0] <== i == 0 ? N : muxIndex[i-1].out;
         muxIndex[i].c[1] <== i;
         muxIndex[i].s <== inRangesANDlessThanMaxANDNotIgnore[i].out;
-
-        minAccum[i] <== mux[i].out;
-        minIndexAccum[i] <== muxIndex[i].out;
     }
 
-    minIndex <== minIndexAccum[N-1];
-
+    minIndex <== muxIndex[N-1].out;
 }
 
 // TODO: can this circuit be laid out more efficiently because c[D] is not some arbitrary point?
@@ -102,9 +96,7 @@ template Attack(D,N,DAMAGE,RADIUS,numBits) {
     signal newHealthsAccum[N][N];
     signal output newHealths[N];
     
-    component attacks[N];
     component isHealthPositive[N];
-    component multiMux[N];
     component closestUnit[N];
     component isIndexes[N][N];
     component shouldDecreaseHealth[N][N];
@@ -114,10 +106,9 @@ template Attack(D,N,DAMAGE,RADIUS,numBits) {
         isHealthPositive[i].in[0] <== healths[i];
         isHealthPositive[i].in[1] <== 0;
 
-        closestUnit[i] = MinInRangeIndexIgnore(D,N,numBits);
+        closestUnit[i] = MinInRangeIndexIgnore(D,N,RADIUS,numBits);
         closestUnit[i].index <== i;
         closestUnit[i].c <== ps[i];
-        closestUnit[i].r <== RADIUS;
         closestUnit[i].ps <== ps;
 
         for (var j=0; j < N; j++) {
@@ -137,7 +128,3 @@ template Attack(D,N,DAMAGE,RADIUS,numBits) {
 }
 
 component main = Attack(3, 5, 5, 10, 32);
-
-
-
-
