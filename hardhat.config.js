@@ -19,8 +19,13 @@ module.exports = {
     ptau: "https://hermezptau.blob.core.windows.net/ptau/powersOfTau28_hez_final_18.ptau",
     circuits: [
       {
-        name: "attack",
-        // No protocol, so it defaults to groth16
+        name: "attack"
+      },
+      {
+        name: "divide"
+      },
+      {
+        name: "isqrt"
       }
     ],
   },

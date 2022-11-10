@@ -1,49 +1,16 @@
 const hre = require("hardhat");
 const { assert } = require("chai");
 
-describe("attack circuit", () => {
+describe("isqrt circuit", () => {
   let circuit;
 
   const sampleInput = {
-    positions: [
-      [
-        "5",
-        "3",
-        "9"
-      ],
-      [
-        "5",
-        "4",
-        "9"
-      ],
-      [
-        "1",
-        "2",
-        "3"
-      ],
-      [
-        "1",
-        "1",
-        "3"
-      ],
-      [
-        "1",
-        "2",
-        "3"
-      ]
-    ],
-    healths: [
-      "7",
-      "10",
-      "150",
-      "70",
-      "50"
-    ]
+    in: "27"
   }
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup("attack");
+    circuit = await hre.circuitTest.setup("isqrt");
   });
 
   it("produces a witness with valid constraints", async () => {
@@ -56,12 +23,11 @@ describe("attack circuit", () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, "main.positions[0][0]", sampleInput.positions[0][0]);
-    assert.propertyVal(witness, "main.healths[0]", sampleInput.healths[0]);
+    assert.propertyVal(witness, "main.in", sampleInput.in);
   });
 
   it("has the correct output", async () => {
-    const expected = { newHealths: [2, 5, 140, 70, 45] };
+    const expected = { out: Math.floor(Math.sqrt(sampleInput.in)) };
     const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
     await circuit.assertOut(witness, expected);
   });

@@ -35,7 +35,8 @@ template MinInRangeIndexIgnore(D, N, RADIUS, numBits) {
     component muxIndex[N];
 
     for (var i=0; i < N; i++) {
-      var prev = i == 0 ? 2**numBits : mux[i-1].out;
+        var prev = i == 0 ? 2**numBits : mux[i-1].out;
+
         squareSums[i] = SquareSum(D);
         squareSums[i].a <== c;
         squareSums[i].b <== ps[i];
@@ -90,9 +91,9 @@ template MinInRangeIndexIgnore(D, N, RADIUS, numBits) {
     RADIUS is the attack range of each unit
     numBits is the number of bits used to represent healths and positions
 */
-template Attack(D,N,DAMAGE,RADIUS,numBits) {
-    signal input healths[N];    // The health of each unit
-    signal input ps[N][D];      // The position of each unit
+template Attack(D, N, DAMAGE, RADIUS, numBits) {
+    signal input healths[N];            // The health of each unit
+    signal input positions[N][D];       // The position of each unit
     signal newHealthsAccum[N][N];
     signal output newHealths[N];
     
@@ -106,10 +107,10 @@ template Attack(D,N,DAMAGE,RADIUS,numBits) {
         isHealthPositive[i].in[0] <== healths[i];
         isHealthPositive[i].in[1] <== 0;
 
-        closestUnit[i] = MinInRangeIndexIgnore(D,N,RADIUS,numBits);
+        closestUnit[i] = MinInRangeIndexIgnore(D, N, RADIUS, numBits);
         closestUnit[i].index <== i;
-        closestUnit[i].c <== ps[i];
-        closestUnit[i].ps <== ps;
+        closestUnit[i].c <== positions[i];
+        closestUnit[i].ps <== positions;
 
         for (var j=0; j < N; j++) {
             isIndexes[i][j] = IsEqual();
@@ -127,4 +128,4 @@ template Attack(D,N,DAMAGE,RADIUS,numBits) {
     newHealths <== newHealthsAccum[N-1];
 }
 
-component main = Attack(3, 5, 5, 10, 32);
+component main = Attack(3, 5, 5, 10, 16);

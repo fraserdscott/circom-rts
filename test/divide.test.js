@@ -1,49 +1,17 @@
 const hre = require("hardhat");
 const { assert } = require("chai");
 
-describe("attack circuit", () => {
+describe("divide circuit", () => {
   let circuit;
 
   const sampleInput = {
-    positions: [
-      [
-        "5",
-        "3",
-        "9"
-      ],
-      [
-        "5",
-        "4",
-        "9"
-      ],
-      [
-        "1",
-        "2",
-        "3"
-      ],
-      [
-        "1",
-        "1",
-        "3"
-      ],
-      [
-        "1",
-        "2",
-        "3"
-      ]
-    ],
-    healths: [
-      "7",
-      "10",
-      "150",
-      "70",
-      "50"
-    ]
+    dividend: "11",
+    divisor: "5"
   }
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup("attack");
+    circuit = await hre.circuitTest.setup("divide");
   });
 
   it("produces a witness with valid constraints", async () => {
@@ -56,12 +24,12 @@ describe("attack circuit", () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, "main.positions[0][0]", sampleInput.positions[0][0]);
-    assert.propertyVal(witness, "main.healths[0]", sampleInput.healths[0]);
+    assert.propertyVal(witness, "main.dividend", sampleInput.dividend);
+    assert.propertyVal(witness, "main.divisor", sampleInput.divisor);
   });
 
   it("has the correct output", async () => {
-    const expected = { newHealths: [2, 5, 140, 70, 45] };
+    const expected = { quotient: "2" };
     const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
     await circuit.assertOut(witness, expected);
   });
