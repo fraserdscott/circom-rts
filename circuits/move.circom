@@ -45,12 +45,11 @@ template NoCollisionIndexIgnore(D, N, RADIUS, bits) {
         inRangesANDNotIgnoreOROuts[i].a <== inRangesANDNotIgnore[i].out;
         inRangesANDNotIgnoreOROuts[i].b <== i==0 ? 0 : outs[i-1];
 
-        outs[i] <==inRangesANDNotIgnoreOROuts[i].out;
+        outs[i] <== inRangesANDNotIgnoreOROuts[i].out;
     }
 
     out <== (1 - outs[N-1]);
 }
-
 
 template Move(D, N, RADIUS, SPEED, bits) {
     signal input positions[N][D];       // The position of each unit
@@ -89,7 +88,7 @@ template Move(D, N, RADIUS, SPEED, bits) {
 
             check[i][j] <== lessThan[i][j].out * divide[i][j].quotient;
             opp[i][j] <== (1 - lessThan[i][j].out) * divide[i][j].quotient;
-            potentialPositions[i][j] <== positions[i][j] + (opp[i][j] - check[i][j]);
+            potentialPositions[i][j] <== positions[i][j] + opp[i][j] - check[i][j];
         }
 
         noCollisions[i] = NoCollisionIndexIgnore(D, N, RADIUS, bits);

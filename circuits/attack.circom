@@ -87,7 +87,7 @@ template Attack(D, N, DAMAGE, RADIUS, bits) {
     
     component isHealthPositive[N];
     component closestUnit[N];
-    component isIndexes[N][N];
+    component isIndex[N][N];
     component shouldDecreaseHealth[N][N];
     
     for (var i=0; i < N; i++) {
@@ -101,13 +101,13 @@ template Attack(D, N, DAMAGE, RADIUS, bits) {
         closestUnit[i].ps <== positions;
 
         for (var j=0; j < N; j++) {
-            isIndexes[i][j] = IsEqual();
-            isIndexes[i][j].in[0] <== j;
-            isIndexes[i][j].in[1] <== closestUnit[i].minIndex;
+            isIndex[i][j] = IsEqual();
+            isIndex[i][j].in[0] <== j;
+            isIndex[i][j].in[1] <== closestUnit[i].minIndex;
 
             shouldDecreaseHealth[i][j] = AND();
             shouldDecreaseHealth[i][j].a <== isHealthPositive[i].out;
-            shouldDecreaseHealth[i][j].b <== isIndexes[i][j].out;
+            shouldDecreaseHealth[i][j].b <== isIndex[i][j].out;
 
             newHealthsAccum[i][j] <== (i==0 ? healths[j] : newHealthsAccum[i-1][j]) - shouldDecreaseHealth[i][j].out * DAMAGE;
         }

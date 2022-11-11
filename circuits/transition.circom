@@ -43,4 +43,4 @@ template MultiTransition(T, D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bit
     newPositions <== transitions[T-1].newPositions;
 }
 
-component main = MultiTransition(1, 2, 4, 5, 10, 4, 5, 16);
+component main = MultiTransition(1, 3, 4, 5, 10, 4, 5, 16);

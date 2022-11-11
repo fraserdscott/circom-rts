@@ -23,20 +23,27 @@ template ISqrt(bits) {
     signal sqrtAccum[N];
     signal output out;
 
-    component greaterThanSquare[N];
+    component lessThanIn[N];
     component isSqrt[N];
 
+    // we can precompute the constant bits
+    // and partly precompute the bits of `in`
+    // that would mean we only need to compute the bits for `n`?
     for (var i=0; i < N; i++) {
-        greaterThanSquare[i] = GreaterThan(bits);
-        greaterThanSquare[i].in[0] <== i * i;
-        greaterThanSquare[i].in[1] <== in;
+        // This operation is really expensive.
+        // We want to compare a single field to a bunch of constants.
+        // is there some way to optimise that?
+        // Also, we know that the input has at most `(bits/2)` bits.
+        lessThanIn[i] = LessThan(bits);
+        lessThanIn[i].in[0] <== in;
+        lessThanIn[i].in[1] <== i * i;
 
         isSqrt[i] = XOR();
-        isSqrt[i].a <== i==0 ? 0 : greaterThanSquare[i-1].out;
-        isSqrt[i].b <== greaterThanSquare[i].out;
+        isSqrt[i].a <== i==0 ? 0 : lessThanIn[i-1].out;
+        isSqrt[i].b <== lessThanIn[i].out;
 
         sqrtAccum[i] <== (i==0 ? 0 : sqrtAccum[i-1]) + (isSqrt[i].out * (i-1));
-    } 
+    }
 
     out <== sqrtAccum[N-1];
 }
