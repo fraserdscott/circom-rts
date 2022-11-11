@@ -127,5 +127,3 @@ template Attack(D, N, DAMAGE, RADIUS, bits) {
 
     newHealths <== newHealthsAccum[N-1];
 }
-
-component main = Attack(3, 5, 5, 10, 16);

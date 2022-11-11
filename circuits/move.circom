@@ -120,5 +120,3 @@ template Move(D, N, RADIUS, SPEED, bits) {
         newPositions[i] <== mux[i].out;
     }
 }
-
-component main = Move(3, 4, 4, 5, 16);

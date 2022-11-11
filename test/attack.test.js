@@ -43,7 +43,7 @@ describe("attack circuit", () => {
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup("attack");
+    circuit = await hre.circuitTest.setup("attackTest");
   });
 
   it("produces a witness with valid constraints", async () => {
