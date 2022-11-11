@@ -22,4 +22,25 @@ template Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     newPositions <== move.newPositions;
 }
 
-component main = Transition(3, 4, 5, 10, 4, 5, 16);
+// TODO target positions doesn't change rn because of events.
+template MultiTransition(T, D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
+    signal input healths[N];            // The health of each unit
+    signal input positions[N][D];       // The position of each unit
+    signal input targetPositions[N][D]; // The target position of each unit
+    signal output newHealths[N];
+    signal output newPositions[N][D]; 
+
+    component transitions[T];
+
+    for (var i=0; i < T; i++) {
+        transitions[i] = Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits);
+        transitions[i].healths <== i==0 ? healths : transitions[i-1].newHealths;
+        transitions[i].positions <== i==0 ? positions : transitions[i-1].newPositions;
+        transitions[i].targetPositions <== targetPositions;
+    }
+
+    newHealths <== transitions[T-1].newHealths;
+    newPositions <== transitions[T-1].newPositions;
+}
+
+component main = MultiTransition(1, 2, 4, 5, 10, 4, 5, 16);

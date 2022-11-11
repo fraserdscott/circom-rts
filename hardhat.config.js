@@ -24,18 +24,18 @@ module.exports = {
       {
         name: "transition"
       },
-      {
-        name: "attackTest"
-      },
-      {
-        name: "moveTest"
-      },
-      {
-        name: "divideTest"
-      },
-      {
-        name: "isqrtTest"
-      },
+      // {
+      //   name: "attackTest"
+      // },
+      // {
+      //   name: "moveTest"
+      // },
+      // {
+      //   name: "divideTest"
+      // },
+      // {
+      //   name: "isqrtTest"
+      // },
     ],
   },
 };
