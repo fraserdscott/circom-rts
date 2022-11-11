@@ -22,6 +22,9 @@ module.exports = {
     ptau: "https://hermezptau.blob.core.windows.net/ptau/powersOfTau28_hez_final_18.ptau",
     circuits: [
       {
+        name: "transition"
+      },
+      {
         name: "attackTest"
       },
       {
