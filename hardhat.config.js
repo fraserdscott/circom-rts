@@ -14,6 +14,9 @@ module.exports = {
       },
     ],
   },
+   mocha: {
+    timeout: 100000000
+  },
   circom: {
     inputBasePath: "./circuits",
     ptau: "https://hermezptau.blob.core.windows.net/ptau/powersOfTau28_hez_final_18.ptau",
@@ -26,6 +29,9 @@ module.exports = {
       },
       {
         name: "isqrt"
+      },
+      {
+        name: "move"
       }
     ],
   },

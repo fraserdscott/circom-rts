@@ -18,7 +18,7 @@ template SquareSum(D) {
 }
 
 // Uses https://math.stackexchange.com/questions/3118238/check-if-3d-point-is-inside-sphere
-template MinInRangeIndexIgnore(D, N, RADIUS, numBits) {
+template MinInRangeIndexIgnore(D, N, RADIUS, bits) {
     signal input index;     // The index we want to ignore
     signal input c[D];      // The centre of the circle
     signal input ps[N][D];  // The points we are checking
@@ -35,17 +35,17 @@ template MinInRangeIndexIgnore(D, N, RADIUS, numBits) {
     component muxIndex[N];
 
     for (var i=0; i < N; i++) {
-        var prev = i == 0 ? 2**numBits : mux[i-1].out;
+        var prev = i == 0 ? 2**bits : mux[i-1].out;
 
         squareSums[i] = SquareSum(D);
         squareSums[i].a <== c;
         squareSums[i].b <== ps[i];
 
-        lessThanRadius2[i] = LessThan(numBits);
+        lessThanRadius2[i] = LessThan(bits);
         lessThanRadius2[i].in[0] <== squareSums[i].out;
         lessThanRadius2[i].in[1] <== RADIUS * RADIUS;
 
-        lessThanMax[i] = LessThan(numBits);
+        lessThanMax[i] = LessThan(bits);
         lessThanMax[i].in[0] <== squareSums[i].out;
         lessThanMax[i].in[1] <== prev;
 
@@ -89,9 +89,9 @@ template MinInRangeIndexIgnore(D, N, RADIUS, numBits) {
     N is the number of units,
     DAMAGE is the damage each unit does upon attack
     RADIUS is the attack range of each unit
-    numBits is the number of bits used to represent healths and positions
+    bits is the number of bits used to represent healths and positions
 */
-template Attack(D, N, DAMAGE, RADIUS, numBits) {
+template Attack(D, N, DAMAGE, RADIUS, bits) {
     signal input healths[N];            // The health of each unit
     signal input positions[N][D];       // The position of each unit
     signal newHealthsAccum[N][N];
@@ -103,11 +103,11 @@ template Attack(D, N, DAMAGE, RADIUS, numBits) {
     component shouldDecreaseHealth[N][N];
     
     for (var i=0; i < N; i++) {
-        isHealthPositive[i] = GreaterThan(numBits);
+        isHealthPositive[i] = GreaterThan(bits);
         isHealthPositive[i].in[0] <== healths[i];
         isHealthPositive[i].in[1] <== 0;
 
-        closestUnit[i] = MinInRangeIndexIgnore(D, N, RADIUS, numBits);
+        closestUnit[i] = MinInRangeIndexIgnore(D, N, RADIUS, bits);
         closestUnit[i].index <== i;
         closestUnit[i].c <== positions[i];
         closestUnit[i].ps <== positions;
