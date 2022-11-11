@@ -10,7 +10,7 @@ describe("isqrt circuit", () => {
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup("isqrt");
+    circuit = await hre.circuitTest.setup("isqrtTest");
   });
 
   it("produces a witness with valid constraints", async () => {

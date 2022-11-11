@@ -66,5 +66,3 @@ template Divide(divisor_bits, SQRT_P) {
     remainderUpper.in[1] <== divisor;
     remainderUpper.out === 1;
 }
-
-component main = Divide(16, 100000000000000000000);

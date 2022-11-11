@@ -27,5 +27,3 @@ template ISqrt(bits) {
 
     out <== sqrtAccum[N-1];
 }
-
-component main = ISqrt(16);

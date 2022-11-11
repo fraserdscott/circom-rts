@@ -11,7 +11,7 @@ describe("divide circuit", () => {
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup("divide");
+    circuit = await hre.circuitTest.setup("divideTest");
   });
 
   it("produces a witness with valid constraints", async () => {

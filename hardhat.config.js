@@ -25,14 +25,14 @@ module.exports = {
         name: "attack"
       },
       {
-        name: "divide"
-      },
-      {
-        name: "isqrt"
-      },
-      {
         name: "move"
-      }
+      },
+      {
+        name: "divideTest"
+      },
+      {
+        name: "isqrtTest"
+      },
     ],
   },
 };
