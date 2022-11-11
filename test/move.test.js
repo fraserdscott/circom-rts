@@ -7,9 +7,9 @@ describe("move circuit", () => {
   const sampleInput = {
     positions: [
       [
-        "100",
-        "100",
-        "100"
+        "50",
+        "50",
+        "50"
       ],
       [
         "100",
@@ -17,16 +17,21 @@ describe("move circuit", () => {
         "100"
       ],
       [
-        "100",
-        "100",
-        "100"
+        "150",
+        "150",
+        "150"
+      ],
+      [
+        "155",
+        "150",
+        "150"
       ]
     ],
     targetPositions: [
       [
-        "100",
-        "100",
-        "100"
+        "50",
+        "50",
+        "50"
       ],
       [
         "130",
@@ -34,9 +39,14 @@ describe("move circuit", () => {
         "120"
       ],
       [
-        "80",
-        "80",
-        "80"
+        "120",
+        "120",
+        "120"
+      ],
+      [
+        "120",
+        "150",
+        "150"
       ]
     ]
   }
@@ -59,13 +69,14 @@ describe("move circuit", () => {
     assert.propertyVal(witness, "main.positions[0][0]", sampleInput.positions[0][0]);
   });
 
+  // now, have one that will collide with these
   it("has the correct output", async () => {
     const expected = {
       newPositions: [
         [
-          "100",
-          "100",
-          "100"
+          "50",
+          "50",
+          "50"
         ],
         [
           "102",
@@ -73,9 +84,14 @@ describe("move circuit", () => {
           "101"
         ],
         [
-          "98",
-          "98",
-          "98"
+          "148",
+          "148",
+          "148"
+        ],
+        [
+          "155",
+          "150",
+          "150"
         ]
       ]
     };
