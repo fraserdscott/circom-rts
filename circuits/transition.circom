@@ -25,7 +25,7 @@ template Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
 template MultiTransition(T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input healths[N];                // The health of each unit
     signal input positions[N][D];           // The position of each unit
-    signal input targetPositions[T][N][D];
+    signal input targetPositions[T][N][D];  // The target position of each unit, per tick
     signal output newHealths[N];
     signal output newPositions[N][D];
     
