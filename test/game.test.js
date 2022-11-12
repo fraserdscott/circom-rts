@@ -5,10 +5,13 @@ describe("game circuit", () => {
   let circuit;
 
   const sampleInput = {
-    healths: [
+    unitHealths: [
       "7"
     ],
-    positions: [
+    unitPlayer: [
+      "0"
+    ],
+    unitPositions: [
       [
         "50",
         "50",
@@ -19,6 +22,11 @@ describe("game circuit", () => {
       0,
       0,
       1
+    ],
+    eventPlayer: [
+      0,
+      0,
+      0
     ],
     eventSelected: [
       0,
@@ -65,7 +73,7 @@ describe("game circuit", () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, "main.positions[0][0]", sampleInput.positions[0][0]);
+    assert.propertyVal(witness, "main.unitPositions[0][0]", sampleInput.unitPositions[0][0]);
   });
 
   it("has the correct output", async () => {

@@ -1,8 +1,11 @@
 {
-  "healths": [
+  "unitHealths": [
     "7"
   ],
-  "positions": [
+  "unitPlayer": [
+    "0"
+  ],
+  "unitPositions": [
     [
       "50",
       "50",
@@ -10,6 +13,11 @@
     ]
   ],
   "eventTick": [
+    0,
+    0,
+    0
+  ],
+  "eventPlayer": [
     0,
     0,
     0
