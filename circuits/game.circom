@@ -16,7 +16,6 @@ template EventPositions(T, N, D) {
     component isTick[T];
     component isUnit[T][N];
     component isFaction[N];
-    component isTickANDisUnit[T][N];
     component isTickANDisUnitANDisFaction[T][N];
     component isTickANDisUnitANDisFactionOReventFound[T][N];
     component mux[T][N];
@@ -34,25 +33,21 @@ template EventPositions(T, N, D) {
         isTick[i].in[0] <== i;
         isTick[i].in[1] <== eventTick;
 
-        // TODO: add an additional check that the unit is in this faction
         for (var j=0; j < N; j++) { 
             isUnit[i][j] = IsEqual();
             isUnit[i][j].in[0] <== j;
             isUnit[i][j].in[1] <== eventSelected;
 
-            isTickANDisUnit[i][j] = AND();
-            isTickANDisUnit[i][j].a <== isTick[i].out;
-            isTickANDisUnit[i][j].b <== isUnit[i][j].out;
-
-            isTickANDisUnitANDisFaction[i][j] = AND();
-            isTickANDisUnitANDisFaction[i][j].a <== isTickANDisUnit[i][j].out;
-            isTickANDisUnitANDisFaction[i][j].b <== isFaction[j].out;
+            isTickANDisUnitANDisFaction[i][j] = MultiAND(3);
+            isTickANDisUnitANDisFaction[i][j].in[0] <== isTick[i].out;
+            isTickANDisUnitANDisFaction[i][j].in[1] <== isUnit[i][j].out;
+            isTickANDisUnitANDisFaction[i][j].in[2] <== isFaction[j].out;
 
             isTickANDisUnitANDisFactionOReventFound[i][j] = OR();
             isTickANDisUnitANDisFactionOReventFound[i][j].a <== isTickANDisUnitANDisFaction[i][j].out;
             isTickANDisUnitANDisFactionOReventFound[i][j].b <== i == 0 ? 0 : eventFound[i-1][j];
 
-            eventFound[i][j] <== (i==0 ? 0 : eventFound[i-1][j]) + isTickANDisUnit[i][j].out;
+            eventFound[i][j] <== (i==0 ? 0 : eventFound[i-1][j]) + isTickANDisUnitANDisFaction[i][j].out;
             
             mux[i][j] = MultiMux1(D);
             mux[i][j].s <== isTickANDisUnitANDisFactionOReventFound[i][j].out;
@@ -130,7 +125,6 @@ template EventHashes(E, D) {
 }
 
 // TODO: bake health and positions into the circuit.
-// TODO: add unit and event factions
 template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input unitHealths[N];            // The initial health of each unit
     signal input unitPlayer[N];             // The player each unit belongs to
