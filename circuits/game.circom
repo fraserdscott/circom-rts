@@ -1,5 +1,6 @@
 pragma circom 2.1.0;
 
+include "../node_modules/circomlib/circuits/mimcsponge.circom";
 include "./transition.circom";
 
 template Event(T, N, D) {
@@ -7,9 +8,9 @@ template Event(T, N, D) {
     signal input eventSelected;  
     signal input eventPosition[D];
     signal input targetPositions[T][N][D];
+    signal eventFound[T][N];
     signal output newTargetPositions[T][N][D];
 
-    signal eventFound[T][N];
     component isTick[T];
     component isUnit[T][N];
     component isTickANDisUnit[T][N];
@@ -50,15 +51,36 @@ template Event(T, N, D) {
     }
 }
 
+template EventHash(D) {
+    signal input eventsHash;             
+    signal input eventTick;             // The tick that each event took place in
+    signal input eventSelected;         // The selected unit, per event
+    signal input eventPosition[D];      // The target position for the selected unit, per event
+    signal output newEventsHash;
+
+    component hash = MiMCSponge(3+D, 220, 1);
+    hash.ins[0] <== eventsHash;
+    hash.ins[1] <== eventTick;
+    hash.ins[2] <== eventSelected;
+    for (var i=0; i < D; i++) { 
+        hash.ins[3+i] <== eventPosition[i];
+    }
+    hash.k <== 0;
+
+    newEventsHash <== hash.outs[0];
+}
+
 // Process user events to determine the target position for each unit per tick
 template Events(E, T, N, D) {
     signal input eventTick[E];              // The tick that each event took place in
     signal input eventSelected[E];          // The selected unit, per event
     signal input eventPositions[E][D];      // The target position for the selected unit, per event
     signal input targetPositions[T][N][D];  // The initial target position per tick, for each unit unit, 
+    signal output newEventsHash;
     signal output newTargetPositions[T][N][D];
     
     component events[E];
+    component eventHashes[E];
 
     for (var i=0; i < E; i++) {
         events[i] = Event(T, N, D);
@@ -66,13 +88,19 @@ template Events(E, T, N, D) {
         events[i].eventSelected <== eventSelected[i];
         events[i].eventPosition <== eventPositions[i];
         events[i].targetPositions <== i == 0 ? targetPositions : events[i-1].newTargetPositions;
+
+        eventHashes[i] = EventHash(D);
+        eventHashes[i].eventTick <== eventTick[i];
+        eventHashes[i].eventSelected <== eventSelected[i];
+        eventHashes[i].eventPosition <== eventPositions[i];
+        eventHashes[i].eventsHash <== i == 0 ? 0 : eventHashes[i-1].newEventsHash;
     }
 
     newTargetPositions <== events[E-1].newTargetPositions;
+    newEventsHash <== eventHashes[E-1].newEventsHash;
 }
 
 // TODO: bake health and positions into the circuit.
-// TODO: add event hashing
 template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input healths[N];                // The health of each unit
     signal input positions[N][D];           // The position of each unit
