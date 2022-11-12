@@ -1,12 +1,12 @@
 const hre = require("hardhat");
 const { assert } = require("chai");
 
+const SAMPLES = 100;
+
 describe("isqrt circuit", () => {
   let circuit;
 
-  const sampleInput = {
-    in: "27"
-  }
+  const sampleInputs = Array.from(Array(SAMPLES).keys()).map(i => ({ in: i.toString() }))
   const sanityCheck = true;
 
   before(async () => {
@@ -14,21 +14,27 @@ describe("isqrt circuit", () => {
   });
 
   it("produces a witness with valid constraints", async () => {
-    const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
-    await circuit.checkConstraints(witness);
+    for (let i = 0; i < SAMPLES; i++) {
+      const witness = await circuit.calculateWitness(sampleInputs[i], sanityCheck);
+      await circuit.checkConstraints(witness);
+    }
   });
 
   it("has expected witness values", async () => {
-    const witness = await circuit.calculateLabeledWitness(
-      sampleInput,
-      sanityCheck
-    );
-    assert.propertyVal(witness, "main.in", sampleInput.in);
+    for (let i = 0; i < SAMPLES; i++) {
+      const witness = await circuit.calculateLabeledWitness(
+        sampleInputs[i],
+        sanityCheck
+      );
+      assert.propertyVal(witness, "main.in", sampleInputs[i].in);
+    }
   });
 
   it("has the correct output", async () => {
-    const expected = { out: Math.floor(Math.sqrt(sampleInput.in)) };
-    const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
-    await circuit.assertOut(witness, expected);
+    for (let i = 0; i < SAMPLES; i++) {
+      const expected = { out: Math.floor(Math.sqrt(sampleInputs[i].in)) };
+      const witness = await circuit.calculateWitness(sampleInputs[i], sanityCheck);
+      await circuit.assertOut(witness, expected);
+    }
   });
 });
