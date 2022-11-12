@@ -6,7 +6,7 @@ include "./transition.circom";
 template EventPositions(T, N, D) {
     signal input eventTick;
     signal input eventPlayer;
-    signal input eventSelected;
+    signal input eventUnit;
     signal input eventPosition[D];
     signal input unitPlayer[N];
     signal input unitTargetPositions[T][N][D];
@@ -14,8 +14,8 @@ template EventPositions(T, N, D) {
     signal output newTargetPositions[T][N][D];
 
     component isTick[T];
-    component isUnit[T][N];
     component isFaction[N];
+    component isUnit[T][N];
     component isTickANDisUnitANDisFaction[T][N];
     component isTickANDisUnitANDisFactionOReventFound[T][N];
     component mux[T][N];
@@ -36,7 +36,7 @@ template EventPositions(T, N, D) {
         for (var j=0; j < N; j++) { 
             isUnit[i][j] = IsEqual();
             isUnit[i][j].in[0] <== j;
-            isUnit[i][j].in[1] <== eventSelected;
+            isUnit[i][j].in[1] <== eventUnit;
 
             isTickANDisUnitANDisFaction[i][j] = MultiAND(3);
             isTickANDisUnitANDisFaction[i][j].in[0] <== isTick[i].out;
@@ -63,10 +63,10 @@ template EventPositions(T, N, D) {
 
 // Process user eventTargetPositions to determine the target position for each unit per tick
 template EventTargetPositions(E, T, N, D) {
-    signal input eventTick[E];              // The tick that each event took place in
+    signal input eventTick[E];                  // The tick that each event took place in
     signal input eventPlayer[E];
-    signal input eventSelected[E];          // The selected unit, per event
-    signal input eventPositions[E][D];      // The target position for the selected unit, per event
+    signal input eventUnit[E];              // The selected unit, per event
+    signal input eventPositions[E][D];          // The target position for the selected unit, per event
     signal input unitPlayer[N];
     signal input unitTargetPositions[T][N][D];  // The initial target position per tick, for each unit unit
     signal output newTargetPositions[T][N][D];
@@ -77,7 +77,7 @@ template EventTargetPositions(E, T, N, D) {
         eventTargetPositions[i] = EventPositions(T, N, D);
         eventTargetPositions[i].eventTick <== eventTick[i];
         eventTargetPositions[i].eventPlayer <== eventPlayer[i];
-        eventTargetPositions[i].eventSelected <== eventSelected[i];
+        eventTargetPositions[i].eventUnit <== eventUnit[i];
         eventTargetPositions[i].eventPosition <== eventPositions[i];
         eventTargetPositions[i].unitPlayer <== unitPlayer;
         eventTargetPositions[i].unitTargetPositions <== i == 0 ? unitTargetPositions : eventTargetPositions[i-1].newTargetPositions;
@@ -86,17 +86,18 @@ template EventTargetPositions(E, T, N, D) {
     newTargetPositions <== eventTargetPositions[E-1].newTargetPositions;
 }
 
+// TODO add player
 template EventHash(D) {
     signal input eventsHash;            // The sequential hash of each previous event 
     signal input eventTick;             // The tick that each event took place in
-    signal input eventSelected;         // The selected unit, per event
+    signal input eventUnit;         // The selected unit, per event
     signal input eventPosition[D];      // The target position for the selected unit, per event
     signal output newEventsHash;
 
     component hash = Poseidon(3+D);
     hash.inputs[0] <== eventsHash;
     hash.inputs[1] <== eventTick;
-    hash.inputs[2] <== eventSelected;
+    hash.inputs[2] <== eventUnit;
     for (var i=0; i < D; i++) { 
         hash.inputs[3+i] <== eventPosition[i];
     }
@@ -107,7 +108,7 @@ template EventHash(D) {
 template EventHashes(E, D) {
     signal input eventsHash;                // The sequential hash of each previous event 
     signal input eventTick[E];              // The tick that each event took place in
-    signal input eventSelected[E];          // The selected unit, per event
+    signal input eventUnit[E];          // The selected unit, per event
     signal input eventPositions[E][D];      // The target position for the selected unit, per event
     signal output newEventsHash;
     
@@ -116,7 +117,7 @@ template EventHashes(E, D) {
     for (var i=0; i < E; i++) {
         eventHashes[i] = EventHash(D);
         eventHashes[i].eventTick <== eventTick[i];
-        eventHashes[i].eventSelected <== eventSelected[i];
+        eventHashes[i].eventUnit <== eventUnit[i];
         eventHashes[i].eventPosition <== eventPositions[i];
         eventHashes[i].eventsHash <== i == 0 ? eventsHash : eventHashes[i-1].newEventsHash;
     }
@@ -124,7 +125,6 @@ template EventHashes(E, D) {
     newEventsHash <== eventHashes[E-1].newEventsHash;
 }
 
-// TODO: bake health and positions into the circuit.
 template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input unitHealths[N];            // The initial health of each unit
     signal input unitPlayer[N];             // The player each unit belongs to
@@ -140,13 +140,13 @@ template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     component eventHashes = EventHashes(E, D);
     eventHashes.eventsHash <== 0;
     eventHashes.eventTick <== eventTick;
-    eventHashes.eventSelected <== eventSelected;
+    eventHashes.eventUnit <== eventSelected;
     eventHashes.eventPositions <== eventPositions;
 
     component eventTargetPositions = EventTargetPositions(E, T, N, D);
     eventTargetPositions.eventTick <== eventTick;
     eventTargetPositions.eventPlayer <== eventPlayer;
-    eventTargetPositions.eventSelected <== eventSelected;
+    eventTargetPositions.eventUnit <== eventSelected;
     eventTargetPositions.eventPositions <== eventPositions;
     eventTargetPositions.unitPlayer <== unitPlayer;
     // By default, units move towards their starting position (ie. stay still)

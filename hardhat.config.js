@@ -33,12 +33,15 @@ module.exports = {
       // {
       //   name: "isqrtTest"
       // },
-      {
-        name: "gameTest"
-      },
       // {
       //   name: "transitionTest"
       // },
+      // {
+      //   name: "gameTest"
+      // },
+      {
+        name: "presetTest"
+      },
     ],
   },
 };

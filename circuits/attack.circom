@@ -49,6 +49,7 @@ template MinInRangeIndexIgnore(D, N, RADIUS, bits) {
         isNotIndex[i] = NOT();
         isNotIndex[i].in <== isIndex[i].out;
 
+        // TODO: use a multiAnd here
         inRangesANDlessThanMaxANDNotIgnore[i] = AND();
         inRangesANDlessThanMaxANDNotIgnore[i].a <== lessThanRadius2ANDLessThanMax[i].out;
         inRangesANDlessThanMaxANDNotIgnore[i].b <== isNotIndex[i].out;
