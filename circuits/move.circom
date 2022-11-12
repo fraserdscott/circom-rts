@@ -3,8 +3,6 @@ pragma circom 2.1.0;
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 include "../node_modules/circomlib/circuits/mux1.circom";
-include "./divide.circom";
-include "./isqrt.circom";
 include "./squareSum.circom";
 
 // Uses https://math.stackexchange.com/questions/3118238/check-if-3d-point-is-inside-sphere
@@ -52,44 +50,28 @@ template NoCollisionIndexIgnore(D, N, RADIUS, bits) {
     out <== (1 - outs[N-1]);
 }
 
-template Move(D, N, RADIUS, SPEED, bits) {
+template Move(N, D, RADIUS, SPEED, bits) {
     signal input positions[N][D];       // The position of each unit
-    signal input targetPositions[N][D]; // The target position of each unit
-    signal real[N][D];
-    signal check[N][D];
-    signal opp[N][D];
+    signal input vectors[N][D];         // The vector unit the unit is travelling on
+    signal accum[N][D];
     signal potentialPositions[N][D];
     signal output newPositions[N][D];
 
+    component isUnit[N];
     component noCollisions[N];
-    component squareSum[N];
-    component length[N];
     component mux[N];
-    component lessThan[N][D];
-    component divide[N][D];
 
     for (var i=0; i < N; i++) {
-        squareSum[i] = SquareSum(D);
-        squareSum[i].a <== positions[i];
-        squareSum[i].b <== targetPositions[i];
-        
-        length[i] = ISqrt(bits);
-        length[i].in <== squareSum[i].out;
+        for (var j=0; j < D; j++) {
+            accum[i][j] <== (j == 0 ? 0 : accum[i][j-1]) + (vectors[i][j]) * (vectors[i][j]);
+        }
+
+        isUnit[i] = IsEqual();
+        isUnit[i].in[0] <== accum[i][D-1];
+        isUnit[i].in[1] <== SPEED * SPEED;
 
         for (var j=0; j < D; j++) {
-            lessThan[i][j] = LessThan(bits);
-            lessThan[i][j].in[0] <== targetPositions[i][j];
-            lessThan[i][j].in[1] <== positions[i][j];
-
-            divide[i][j] = Divide(bits, 100000000000000000000);
-
-            real[i][j] <== (1 - lessThan[i][j].out) * (targetPositions[i][j] - positions[i][j]);
-            divide[i][j].dividend <== (real[i][j] + lessThan[i][j].out * (positions[i][j] - targetPositions[i][j])) * SPEED;
-            divide[i][j].divisor <== length[i].out + 1;
-
-            check[i][j] <== lessThan[i][j].out * divide[i][j].quotient;
-            opp[i][j] <== (1 - lessThan[i][j].out) * divide[i][j].quotient;
-            potentialPositions[i][j] <== positions[i][j] + opp[i][j] - check[i][j];
+            potentialPositions[i][j] <== positions[i][j] + isUnit[i].out * vectors[i][j];
         }
 
         noCollisions[i] = NoCollisionIndexIgnore(D, N, RADIUS, bits);

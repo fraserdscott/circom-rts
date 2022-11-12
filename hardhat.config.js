@@ -21,24 +21,18 @@ module.exports = {
     inputBasePath: "./circuits",
     ptau: "https://hermezptau.blob.core.windows.net/ptau/powersOfTau28_hez_final_18.ptau",
     circuits: [
-      // {
-      //   name: "attackTest"
-      // },
-      // {
-      //   name: "moveTest"
-      // },
-      // {
-      //   name: "divideTest"
-      // },
-      // {
-      //   name: "isqrtTest"
-      // },
-      // {
-      //   name: "transitionTest"
-      // },
-      // {
-      //   name: "gameTest"
-      // },
+      {
+        name: "attackTest"
+      },
+      {
+        name: "moveTest"
+      },
+      {
+        name: "transitionTest"
+      },
+      {
+        name: "gameTest"
+      },
       {
         name: "presetTest"
       },

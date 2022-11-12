@@ -3,7 +3,6 @@ pragma circom 2.1.0;
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 include "../node_modules/circomlib/circuits/mux1.circom";
-include "./isqrt.circom";
 include "./squareSum.circom";
 
 // Uses https://math.stackexchange.com/questions/3118238/check-if-3d-point-is-inside-sphere

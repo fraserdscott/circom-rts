@@ -6,7 +6,7 @@ include "./move.circom";
 template Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input healths[N];            // The health of each unit
     signal input positions[N][D];       // The current position of each unit
-    signal input targetPositions[N][D]; // The target position of each unit
+    signal input vectors[N][D]; // The target position of each unit
     signal output newHealths[N];
     signal output newPositions[N][D]; 
 
@@ -14,9 +14,9 @@ template Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     attack.healths <== healths;
     attack.positions <== positions;
 
-    component move = Move(D, N, UNIT_RADIUS, SPEED, bits);
+    component move = Move(N, D, UNIT_RADIUS, SPEED, bits);
     move.positions <== positions;
-    move.targetPositions <== targetPositions;
+    move.vectors <== vectors;
 
     newHealths <== attack.newHealths;
     newPositions <== move.newPositions;
@@ -25,7 +25,7 @@ template Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
 template Transitions(T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input healths[N];                // The health of each unit
     signal input positions[N][D];           // The position of each unit
-    signal input targetPositions[T][N][D];  // The target position of each unit, per tick
+    signal input vectors[T][N][D];  // The target position of each unit, per tick
     signal output newHealths[N];
     signal output newPositions[N][D];
     
@@ -35,7 +35,7 @@ template Transitions(T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
         transitions[i] = Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits);
         transitions[i].healths <== i==0 ? healths : transitions[i-1].newHealths;
         transitions[i].positions <== i==0 ? positions : transitions[i-1].newPositions;
-        transitions[i].targetPositions <== targetPositions[i];
+        transitions[i].vectors <== vectors[i];
     }
 
     newHealths <== transitions[T-1].newHealths;

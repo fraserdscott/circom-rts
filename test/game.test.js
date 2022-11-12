@@ -36,33 +36,27 @@ describe("game circuit", () => {
       0,
       0
     ],
-    eventPositions: [
+    eventVectors: [
       [
         [
-          "100",
-          "100",
-          "100"
-        ]
-      ],
-      [
+          "5",
+          "0",
+          "0"
+        ],
         [
-          "100",
-          "100",
-          "100"
-        ]
-      ],
-      [
+          "3",
+          "4",
+          "0"
+        ],
         [
-          "20",
-          "35",
-          "70"
-        ]
-      ],
-      [
+          "4",
+          "0",
+          "3"
+        ],
         [
-          "100",
-          "100",
-          "100"
+          "0",
+          "0",
+          "0"
         ]
       ]
     ]
@@ -93,9 +87,9 @@ describe("game circuit", () => {
       ],
       newPositions: [
         [
-          "49",
-          "50",
-          "54"
+          "57",
+          "54",
+          "53"
         ]
       ]
     }; const witness = await circuit.calculateWitness(sampleInput, sanityCheck);

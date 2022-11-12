@@ -15,11 +15,11 @@ describe("transition circuit", () => {
         "50"
       ]
     ],
-    "targetPositions": [
+    "vectors": [
       [
-        "52",
-        "52",
-        "52"
+        "0",
+        "3",
+        "4"
       ]
     ]
   };
@@ -49,9 +49,9 @@ describe("transition circuit", () => {
       ],
       newPositions: [
         [
-          "52",
-          "52",
-          "52"
+          "50",
+          "53",
+          "54"
         ]
       ]
     }; const witness = await circuit.calculateWitness(sampleInput, sanityCheck);

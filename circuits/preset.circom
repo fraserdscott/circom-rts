@@ -13,7 +13,7 @@ template Preset(E, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input eventTick[E];
     signal input eventPlayer[E];
     signal input eventSelected[E];
-    signal input eventPositions[E][D];
+    signal input eventVectors[E][D];
     signal unitHealths[N];
     signal unitPlayer[N];
     signal unitPositions[N][D];
@@ -36,7 +36,7 @@ template Preset(E, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     game.eventTick <== eventTick;
     game.eventPlayer <== eventPlayer;
     game.eventSelected <== eventSelected;
-    game.eventPositions <== eventPositions;
+    game.eventVectors <== eventVectors;
     game.unitHealths <== unitHealths;
     game.unitPlayer <== unitPlayer;
     game.unitPositions <== unitPositions;
