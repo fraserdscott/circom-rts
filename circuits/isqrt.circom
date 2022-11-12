@@ -20,30 +20,27 @@ template ISqrt(bits) {
     var N = 2 ** (bits / 2);
 
     signal input in;
-    signal sqrtAccum[N];
     signal output out;
 
-    component lessThanIn[N];
-    component isSqrt[N];
-
-    // we can precompute the constant bits
-    // and partly precompute the bits of `in`
-    // that would mean we only need to compute the bits for `n`?
+    var sqrt;
+    
+    // Generate an advice square root for witness generation
     for (var i=0; i < N; i++) {
-        // This operation is really expensive.
-        // We want to compare a single field to a bunch of constants.
-        // is there some way to optimise that?
-        // Also, we know that the input has at most `(bits/2)` bits.
-        lessThanIn[i] = LessThan(bits);
-        lessThanIn[i].in[0] <== in;
-        lessThanIn[i].in[1] <== i * i;
-
-        isSqrt[i] = XOR();
-        isSqrt[i].a <== i==0 ? 0 : lessThanIn[i-1].out;
-        isSqrt[i].b <== lessThanIn[i].out;
-
-        sqrtAccum[i] <== (i==0 ? 0 : sqrtAccum[i-1]) + (isSqrt[i].out * (i-1));
+        if ((i+1) * (i+1) > in && sqrt == 0) {
+            sqrt = i;
+        }
     }
+    out <-- sqrt;
 
-    out <== sqrtAccum[N-1];
+    // Check that the input is greater than or equal to advice square root,
+    // but less than the next square number.
+    component lessThan = LessEqThan(bits);
+    lessThan.in[0] <== out * out;
+    lessThan.in[1] <== in;
+    lessThan.out === 1;
+
+    component lessThanPrev = GreaterThan(bits);
+    lessThanPrev.in[0] <== (out+1) * (out+1);
+    lessThanPrev.in[1] <== in;
+    lessThanPrev.out === 1;
 }
