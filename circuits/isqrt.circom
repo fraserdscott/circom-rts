@@ -2,6 +2,8 @@ pragma circom 2.1.0;
 
 include "../node_modules/circomlib/circuits/comparators.circom";
 
+// The integer square root of a number.
+// eg. iSqrt(27) = floor(sqrt(27)) = 5
 template ISqrt(bits) {
     signal input in;
     signal output out;

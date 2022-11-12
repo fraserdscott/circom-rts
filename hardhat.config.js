@@ -34,7 +34,7 @@ module.exports = {
         name: "isqrtTest"
       },
       {
-        name: "transition"
+        name: "transitionTest"
       },
     ],
   },

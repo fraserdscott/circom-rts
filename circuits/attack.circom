@@ -4,6 +4,7 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 include "../node_modules/circomlib/circuits/mux1.circom";
 include "./isqrt.circom";
+include "./squareSum.circom";
 
 // Uses https://math.stackexchange.com/questions/3118238/check-if-3d-point-is-inside-sphere
 template MinInRangeIndexIgnore(D, N, RADIUS, bits) {

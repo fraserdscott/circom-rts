@@ -28,7 +28,7 @@ template MultiTransition(T, D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bit
     signal input positions[N][D];       // The position of each unit
     signal input targetPositions[N][D]; // The target position of each unit
     signal output newHealths[N];
-    signal output newPositions[N][D]; 
+    signal output newPositions[N][D];
 
     component transitions[T];
 
@@ -42,5 +42,3 @@ template MultiTransition(T, D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bit
     newHealths <== transitions[T-1].newHealths;
     newPositions <== transitions[T-1].newPositions;
 }
-
-component main = MultiTransition(2, 3, 4, 5, 10, 4, 5, 16);
