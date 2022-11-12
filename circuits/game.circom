@@ -9,9 +9,11 @@ template Event(T, N, D) {
     signal input targetPositions[T][N][D];
     signal output newTargetPositions[T][N][D];
 
+    signal eventFound[T][N];
     component isTick[T];
     component isUnit[T][N];
     component isTickANDisUnit[T][N];
+    component isTickANDisUnitOReventFound[T][N];
     component mux[T][N];
 
     // Find the tick and unit that correspond to this event (if any, users can submit invalid data)
@@ -30,8 +32,14 @@ template Event(T, N, D) {
             isTickANDisUnit[i][j].a <== isTick[i].out;
             isTickANDisUnit[i][j].b <== isUnit[i][j].out;
 
+            isTickANDisUnitOReventFound[i][j] = OR();
+            isTickANDisUnitOReventFound[i][j].a <== isTickANDisUnit[i][j].out;
+            isTickANDisUnitOReventFound[i][j].b <== i == 0 ? 0 : eventFound[i-1][j];
+
+            eventFound[i][j] <== (i==0 ? 0 : eventFound[i-1][j]) + isTickANDisUnit[i][j].out;
+            
             mux[i][j] = MultiMux1(D);
-            mux[i][j].s <== isTickANDisUnit[i][j].out;
+            mux[i][j].s <== isTickANDisUnitOReventFound[i][j].out;
             for (var k=0; k < D; k++) {
                 mux[i][j].c[k][0] <== targetPositions[i][j][k];
                 mux[i][j].c[k][1] <== eventPosition[k];
@@ -41,6 +49,7 @@ template Event(T, N, D) {
         }
     }
 }
+
 // Process user events to determine the target position for each unit per tick
 template Events(E, T, N, D) {
     signal input positions[N][D];           // The initial position of each unit
@@ -62,14 +71,14 @@ template Events(E, T, N, D) {
         events[i].eventTick <== eventTick[i];
         events[i].eventSelected <== eventSelected[i];
         events[i].eventPosition <== eventPositions[i];
-        events[i].targetPositions <== targetPositions;
+        events[i].targetPositions <== i == 0 ? targetPositions : events[i-1].newTargetPositions;
     }
 
     newTargetPositions <== events[E-1].newTargetPositions;
 }
 
 // TODO: bake health and positions into the circuit.
-// TODO: structure events recursivley and add hashing
+// TODO: and event add hashing
 template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input healths[N];                // The health of each unit
     signal input positions[N][D];           // The position of each unit
@@ -85,11 +94,11 @@ template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     events.eventSelected <== eventSelected;
     events.eventPositions <== eventPositions;
     
-    component multiTransition = MultiTransition(T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits);
-    multiTransition.healths <== healths;
-    multiTransition.positions <== positions;
-    multiTransition.targetPositions <== events.newTargetPositions;
+    component transitions = Transitions(T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits);
+    transitions.healths <== healths;
+    transitions.positions <== positions;
+    transitions.targetPositions <== events.newTargetPositions;
 
-    newHealths <== multiTransition.newHealths;
-    newPositions <== multiTransition.newPositions;
+    newHealths <== transitions.newHealths;
+    newPositions <== transitions.newPositions;
 }

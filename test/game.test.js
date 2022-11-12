@@ -18,13 +18,9 @@ describe("game circuit", () => {
     eventTick: [
       0,
       0,
-      0,
-      0,
-      0
+      1
     ],
     eventSelected: [
-      0,
-      0,
       0,
       0,
       0
@@ -46,23 +42,9 @@ describe("game circuit", () => {
       ],
       [
         [
-          "100",
-          "100",
-          "100"
-        ]
-      ],
-      [
-        [
-          "100",
-          "100",
-          "100"
-        ]
-      ],
-      [
-        [
-          "100",
-          "100",
-          "100"
+          "20",
+          "35",
+          "70"
         ]
       ]
     ]
@@ -93,9 +75,9 @@ describe("game circuit", () => {
       ],
       newPositions: [
         [
-          "52",
-          "52",
-          "52"
+          "49",
+          "50",
+          "54"
         ]
       ]
     }; const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
