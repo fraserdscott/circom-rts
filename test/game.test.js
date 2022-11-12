@@ -1,32 +1,76 @@
 const hre = require("hardhat");
 const { assert } = require("chai");
 
-describe("transition circuit", () => {
+describe("game circuit", () => {
   let circuit;
 
   const sampleInput = {
-    "healths": [
+    healths: [
       "7"
     ],
-    "positions": [
+    positions: [
       [
         "50",
         "50",
         "50"
       ]
     ],
-    "targetPositions": [
+    eventTick: [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    eventSelected: [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    eventPositions: [
       [
-        "52",
-        "52",
-        "52"
+        [
+          "100",
+          "100",
+          "100"
+        ]
+      ],
+      [
+        [
+          "100",
+          "100",
+          "100"
+        ]
+      ],
+      [
+        [
+          "100",
+          "100",
+          "100"
+        ]
+      ],
+      [
+        [
+          "100",
+          "100",
+          "100"
+        ]
+      ],
+      [
+        [
+          "100",
+          "100",
+          "100"
+        ]
       ]
     ]
   };
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup("transitionTest");
+    circuit = await hre.circuitTest.setup("gameTest");
   });
 
   it("produces a witness with valid constraints", async () => {

@@ -34,8 +34,11 @@ module.exports = {
       //   name: "isqrtTest"
       // },
       {
-        name: "transitionTest"
+        name: "gameTest"
       },
+      // {
+      //   name: "transitionTest"
+      // },
     ],
   },
 };

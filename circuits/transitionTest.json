@@ -9,19 +9,11 @@
       "50"
     ]
   ],
-  "eventTick": [
-    0
-  ],
-  "eventSelected": [
-    0
-  ],
-  "eventPositions": [
+  "targetPositions": [
     [
-      [
-        "52",
-        "52",
-        "52"
-      ]
+      "52",
+      "52",
+      "52"
     ]
   ]
 }
