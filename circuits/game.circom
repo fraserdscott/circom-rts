@@ -1,9 +1,9 @@
 pragma circom 2.1.0;
 
-include "../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../node_modules/circomlib/circuits/poseidon.circom";
 include "./transition.circom";
 
-template Event(T, N, D) {
+template EventPositions(T, N, D) {
     signal input eventTick;
     signal input eventSelected;  
     signal input eventPosition[D];
@@ -51,52 +51,62 @@ template Event(T, N, D) {
     }
 }
 
+// Process user events to determine the target position for each unit per tick
+template EventTargetPositions(E, T, N, D) {
+    signal input eventTick[E];              // The tick that each event took place in
+    signal input eventSelected[E];          // The selected unit, per event
+    signal input eventPositions[E][D];      // The target position for the selected unit, per event
+    signal input targetPositions[T][N][D];  // The initial target position per tick, for each unit unit
+    signal output newTargetPositions[T][N][D];
+    
+    component events[E];
+
+    for (var i=0; i < E; i++) {
+        events[i] = EventPositions(T, N, D);
+        events[i].eventTick <== eventTick[i];
+        events[i].eventSelected <== eventSelected[i];
+        events[i].eventPosition <== eventPositions[i];
+        events[i].targetPositions <== i == 0 ? targetPositions : events[i-1].newTargetPositions;
+    }
+
+    newTargetPositions <== events[E-1].newTargetPositions;
+}
+
 template EventHash(D) {
-    signal input eventsHash;             
+    signal input eventsHash;            // The sequential hash of each previous event 
     signal input eventTick;             // The tick that each event took place in
     signal input eventSelected;         // The selected unit, per event
     signal input eventPosition[D];      // The target position for the selected unit, per event
     signal output newEventsHash;
 
-    component hash = MiMCSponge(3+D, 220, 1);
-    hash.ins[0] <== eventsHash;
-    hash.ins[1] <== eventTick;
-    hash.ins[2] <== eventSelected;
+    component hash = Poseidon(3+D);
+    hash.inputs[0] <== eventsHash;
+    hash.inputs[1] <== eventTick;
+    hash.inputs[2] <== eventSelected;
     for (var i=0; i < D; i++) { 
-        hash.ins[3+i] <== eventPosition[i];
+        hash.inputs[3+i] <== eventPosition[i];
     }
-    hash.k <== 0;
 
-    newEventsHash <== hash.outs[0];
+    newEventsHash <== hash.out;
 }
 
-// Process user events to determine the target position for each unit per tick
-template Events(E, T, N, D) {
+template EventHashes(E, D) {
+    signal input eventsHash;                // The sequential hash of each previous event 
     signal input eventTick[E];              // The tick that each event took place in
     signal input eventSelected[E];          // The selected unit, per event
     signal input eventPositions[E][D];      // The target position for the selected unit, per event
-    signal input targetPositions[T][N][D];  // The initial target position per tick, for each unit unit, 
     signal output newEventsHash;
-    signal output newTargetPositions[T][N][D];
     
-    component events[E];
     component eventHashes[E];
 
     for (var i=0; i < E; i++) {
-        events[i] = Event(T, N, D);
-        events[i].eventTick <== eventTick[i];
-        events[i].eventSelected <== eventSelected[i];
-        events[i].eventPosition <== eventPositions[i];
-        events[i].targetPositions <== i == 0 ? targetPositions : events[i-1].newTargetPositions;
-
         eventHashes[i] = EventHash(D);
         eventHashes[i].eventTick <== eventTick[i];
         eventHashes[i].eventSelected <== eventSelected[i];
         eventHashes[i].eventPosition <== eventPositions[i];
-        eventHashes[i].eventsHash <== i == 0 ? 0 : eventHashes[i-1].newEventsHash;
+        eventHashes[i].eventsHash <== i == 0 ? eventsHash : eventHashes[i-1].newEventsHash;
     }
 
-    newTargetPositions <== events[E-1].newTargetPositions;
     newEventsHash <== eventHashes[E-1].newEventsHash;
 }
 
@@ -110,7 +120,13 @@ template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal output newHealths[N];
     signal output newPositions[N][D];
 
-    component events = Events(E, T, N, D);
+    component eventHashes = EventHashes(E, D);
+    eventHashes.eventsHash <== 0;
+    eventHashes.eventTick <== eventTick;
+    eventHashes.eventSelected <== eventSelected;
+    eventHashes.eventPositions <== eventPositions;
+
+    component events = EventTargetPositions(E, T, N, D);
     events.eventTick <== eventTick;
     events.eventSelected <== eventSelected;
     events.eventPositions <== eventPositions;
