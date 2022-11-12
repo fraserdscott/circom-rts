@@ -6,7 +6,7 @@ describe("transition circuit", () => {
 
   const sampleInput = {
     healths: [
-      "10"
+      "7"
     ],
     positions: [
       [
@@ -15,11 +15,16 @@ describe("transition circuit", () => {
         "50"
       ]
     ],
-    targetPositions: [
+    eventSelected: [
+      0
+    ],
+    eventPositions: [
       [
-        "55",
-        "55",
-        "55"
+        [
+          "52",
+          "52",
+          "52"
+        ]
       ]
     ]
   };
@@ -45,7 +50,7 @@ describe("transition circuit", () => {
   it("has the correct output", async () => {
     const expected = {
       newHealths: [
-        "10"
+        "7"
       ],
       newPositions: [
         [
