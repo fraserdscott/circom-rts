@@ -17,7 +17,7 @@ template Event(T, N, D) {
     component mux[T][N];
 
     // Find the tick and unit that correspond to this event (if any, users can submit invalid data)
-    // If found, update the target position for this unit during this tick.
+    // If found, update this units target position for this tick and all subsequent ticks.
     for (var i=0; i < T; i++) {
         isTick[i] = IsEqual();
         isTick[i].in[0] <== i;
@@ -52,19 +52,13 @@ template Event(T, N, D) {
 
 // Process user events to determine the target position for each unit per tick
 template Events(E, T, N, D) {
-    signal input positions[N][D];           // The initial position of each unit
     signal input eventTick[E];              // The tick that each event took place in
     signal input eventSelected[E];          // The selected unit, per event
     signal input eventPositions[E][D];      // The target position for the selected unit, per event
-    signal targetPositions[T][N][D];
+    signal input targetPositions[T][N][D];  // The initial target position per tick, for each unit unit, 
     signal output newTargetPositions[T][N][D];
     
     component events[E];
-
-    // By default, units move towards their starting position (ie. stay still)
-    for (var i=0; i < T; i++) {
-        targetPositions[i] <== positions;
-    }
 
     for (var i=0; i < E; i++) {
         events[i] = Event(T, N, D);
@@ -78,7 +72,7 @@ template Events(E, T, N, D) {
 }
 
 // TODO: bake health and positions into the circuit.
-// TODO: and event add hashing
+// TODO: add event hashing
 template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input healths[N];                // The health of each unit
     signal input positions[N][D];           // The position of each unit
@@ -89,10 +83,13 @@ template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal output newPositions[N][D];
 
     component events = Events(E, T, N, D);
-    events.positions <== positions;
     events.eventTick <== eventTick;
     events.eventSelected <== eventSelected;
     events.eventPositions <== eventPositions;
+    // By default, units move towards their starting position (ie. stay still)
+    for (var i=0; i < T; i++) {
+        events.targetPositions[i] <== positions;
+    }
     
     component transitions = Transitions(T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits);
     transitions.healths <== healths;
