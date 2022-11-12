@@ -5,7 +5,7 @@ describe("isqrt circuit", () => {
   let circuit;
 
   const sampleInput = {
-    in: "25"
+    in: "27"
   }
   const sanityCheck = true;
 
