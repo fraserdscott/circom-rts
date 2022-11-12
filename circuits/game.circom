@@ -15,9 +15,17 @@ template EventPositions(T, N, D) {
 
     component isTick[T];
     component isUnit[T][N];
+    component isFaction[N];
     component isTickANDisUnit[T][N];
-    component isTickANDisUnitOReventFound[T][N];
+    component isTickANDisUnitANDisFaction[T][N];
+    component isTickANDisUnitANDisFactionOReventFound[T][N];
     component mux[T][N];
+
+    for (var i=0; i < N; i++) { 
+        isFaction[i] = IsEqual();
+        isFaction[i].in[0] <== eventPlayer;
+        isFaction[i].in[1] <== unitPlayer[i];
+    }
 
     // Find the tick and unit that correspond to this event (if any, users can submit invalid data)
     // If found, update this units target position for this tick and all subsequent ticks.
@@ -36,14 +44,18 @@ template EventPositions(T, N, D) {
             isTickANDisUnit[i][j].a <== isTick[i].out;
             isTickANDisUnit[i][j].b <== isUnit[i][j].out;
 
-            isTickANDisUnitOReventFound[i][j] = OR();
-            isTickANDisUnitOReventFound[i][j].a <== isTickANDisUnit[i][j].out;
-            isTickANDisUnitOReventFound[i][j].b <== i == 0 ? 0 : eventFound[i-1][j];
+            isTickANDisUnitANDisFaction[i][j] = AND();
+            isTickANDisUnitANDisFaction[i][j].a <== isTickANDisUnit[i][j].out;
+            isTickANDisUnitANDisFaction[i][j].b <== isFaction[j].out;
+
+            isTickANDisUnitANDisFactionOReventFound[i][j] = OR();
+            isTickANDisUnitANDisFactionOReventFound[i][j].a <== isTickANDisUnitANDisFaction[i][j].out;
+            isTickANDisUnitANDisFactionOReventFound[i][j].b <== i == 0 ? 0 : eventFound[i-1][j];
 
             eventFound[i][j] <== (i==0 ? 0 : eventFound[i-1][j]) + isTickANDisUnit[i][j].out;
             
             mux[i][j] = MultiMux1(D);
-            mux[i][j].s <== isTickANDisUnitOReventFound[i][j].out;
+            mux[i][j].s <== isTickANDisUnitANDisFactionOReventFound[i][j].out;
             for (var k=0; k < D; k++) {
                 mux[i][j].c[k][0] <== unitTargetPositions[i][j][k];
                 mux[i][j].c[k][1] <== eventPosition[k];

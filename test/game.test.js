@@ -21,14 +21,17 @@ describe("game circuit", () => {
     eventTick: [
       0,
       0,
+      1,
       1
     ],
     eventPlayer: [
       0,
       0,
-      0
+      0,
+      420
     ],
     eventSelected: [
+      0,
       0,
       0,
       0
@@ -53,6 +56,13 @@ describe("game circuit", () => {
           "20",
           "35",
           "70"
+        ]
+      ],
+      [
+        [
+          "100",
+          "100",
+          "100"
         ]
       ]
     ]
