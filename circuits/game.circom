@@ -4,14 +4,16 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 include "./transition.circom";
 
 template EventVector(T, N, D) {
+    signal input unitVectors_in[T][N][D];
+    signal output unitVectors_out[T][N][D];
+
     signal input eventTick;
     signal input eventPlayer;
     signal input eventUnit;
     signal input eventVectors[D];
     signal input unitPlayer[N];
-    signal input unitVectors[T][N][D];
+
     signal eventFound[T][N];
-    signal output newVectors[T][N][D];
 
     component isTick[T];
     component isFaction[N];
@@ -52,23 +54,23 @@ template EventVector(T, N, D) {
             mux[i][j] = MultiMux1(D);
             mux[i][j].s <== isTickANDisUnitANDisFactionOReventFound[i][j].out;
             for (var k=0; k < D; k++) {
-                mux[i][j].c[k][0] <== unitVectors[i][j][k];
+                mux[i][j].c[k][0] <== unitVectors_in[i][j][k];
                 mux[i][j].c[k][1] <== eventVectors[k];
             }
 
-            newVectors[i][j] <== mux[i][j].out;
+            unitVectors_out[i][j] <== mux[i][j].out;
         }
     }
 }
 
 // Process user events to determine the target position for each unit per tick
 template EventVectors(E, T, N, D) {
-    signal input eventTick[E];                  // The tick that each event took place in
+    signal input eventTick[E]; 
     signal input eventPlayer[E];
-    signal input eventUnit[E];              // The selected unit, per event
-    signal input eventVectors[E][D];          // The target position for the selected unit, per event
+    signal input eventUnit[E];
+    signal input eventVectors[E][D];
     signal input unitPlayer[N];
-    signal input unitVectors[T][N][D];  // The initial target position per tick, for each unit unit
+    signal input unitVectors[T][N][D];
     signal output newVectors[T][N][D];
     
     component eventVector[E];
@@ -80,49 +82,54 @@ template EventVectors(E, T, N, D) {
         eventVector[i].eventUnit <== eventUnit[i];
         eventVector[i].eventVectors <== eventVectors[i];
         eventVector[i].unitPlayer <== unitPlayer;
-        eventVector[i].unitVectors <== i == 0 ? unitVectors : eventVector[i-1].newVectors;
+        eventVector[i].unitVectors_in <== i == 0 ? unitVectors : eventVector[i-1].unitVectors_out;
     }
 
-    newVectors <== eventVector[E-1].newVectors;
+    newVectors <== eventVector[E-1].unitVectors_out;
 }
 
-// TODO add player
 template EventHash(D) {
-    signal input eventsHash;            // The sequential hash of each previous event 
+    signal input eventHash_in;          // The sequential hash of each previous event 
+    signal output eventHash_out;        // The sequential hash of each previous event, and this event
+    
     signal input eventTick;             // The tick that each event took place in
+    signal input eventPlayer;           // The player that logged the event
     signal input eventUnit;             // The selected unit, per event
-    signal input eventVectors[D];       // The vector for the selected unit, per event
-    signal output newEventsHash;
+    signal input eventVector[D];        // The vector for the selected unit, per event
 
-    component hash = Poseidon(3+D);
-    hash.inputs[0] <== eventsHash;
+    component hash = Poseidon(4+D);
+    hash.inputs[0] <== eventHash_in;
     hash.inputs[1] <== eventTick;
-    hash.inputs[2] <== eventUnit;
+    hash.inputs[2] <== eventPlayer;
+    hash.inputs[3] <== eventUnit;
     for (var i=0; i < D; i++) { 
-        hash.inputs[3+i] <== eventVectors[i];
+        hash.inputs[4+i] <== eventVector[i];
     }
 
-    newEventsHash <== hash.out;
+    eventHash_out <== hash.out;
 }
 
 template EventHashes(E, D) {
-    signal input eventsHash;                // The sequential hash of each previous event 
-    signal input eventTick[E];              // The tick that each event took place in
-    signal input eventUnit[E];              // The selected unit, per event
-    signal input eventVectors[E][D];        // The vector for the selected unit, per event
-    signal output newEventsHash;
+    signal input eventHash_in;
+    signal output eventHash_out;
+
+    signal input eventTick[E];
+    signal input eventPlayer[E];
+    signal input eventUnit[E];
+    signal input eventVectors[E][D];
     
     component eventHashes[E];
 
     for (var i=0; i < E; i++) {
         eventHashes[i] = EventHash(D);
         eventHashes[i].eventTick <== eventTick[i];
+        eventHashes[i].eventPlayer <== eventPlayer[i];
         eventHashes[i].eventUnit <== eventUnit[i];
-        eventHashes[i].eventVectors <== eventVectors[i];
-        eventHashes[i].eventsHash <== i == 0 ? eventsHash : eventHashes[i-1].newEventsHash;
+        eventHashes[i].eventVector <== eventVectors[i];
+        eventHashes[i].eventHash_in <== i == 0 ? eventHash_in : eventHashes[i-1].eventHash_out;
     }
 
-    newEventsHash <== eventHashes[E-1].newEventsHash;
+    eventHash_out <== eventHashes[E-1].eventHash_out;
 }
 
 template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
@@ -134,12 +141,14 @@ template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     signal input eventSelected[E];          // The selected unit per event
     signal input eventVectors[E][D];        // The new vector for the selected unit
     
+    signal output eventHash_out;
     signal output newHealths[N];
     signal output newPositions[N][D];
 
     component eventHashes = EventHashes(E, D);
-    eventHashes.eventsHash <== 0;
+    eventHashes.eventHash_in <== 0;
     eventHashes.eventTick <== eventTick;
+    eventHashes.eventPlayer <== eventPlayer;
     eventHashes.eventUnit <== eventSelected;
     eventHashes.eventVectors <== eventVectors;
 
@@ -159,10 +168,11 @@ template Game(E, T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
     }
     
     component transitions = Transitions(T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits);
-    transitions.healths <== unitHealths;
-    transitions.positions <== unitPositions;
+    transitions.health_in <== unitHealths;
+    transitions.position_in <== unitPositions;
     transitions.vectors <== events.newVectors;
 
-    newHealths <== transitions.newHealths;
-    newPositions <== transitions.newPositions;
+    eventHash_out <== eventHashes.eventHash_out;
+    newHealths <== transitions.health_out;
+    newPositions <== transitions.position_in;
 }

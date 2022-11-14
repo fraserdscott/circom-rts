@@ -5,10 +5,10 @@ describe("transition circuit", () => {
   let circuit;
 
   const sampleInput = {
-    "healths": [
+    "health_in": [
       "7"
     ],
-    "positions": [
+    "position_in": [
       [
         "50",
         "50",
@@ -39,22 +39,27 @@ describe("transition circuit", () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, "main.positions[0][0]", sampleInput.positions[0][0]);
+    sampleInput.position_in.map((p, i) =>
+      sampleInput.position_in[i].map((q, j) =>
+        assert.propertyVal(witness, `main.position_in[${i}][${j}]`, sampleInput.position_in[i][j])
+      )
+    );
   });
 
   it("has the correct output", async () => {
     const expected = {
-      newHealths: [
+      health_out: [
         "7"
       ],
-      newPositions: [
+      position_out: [
         [
           "50",
           "53",
           "54"
         ]
       ]
-    }; const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
+    };
+    const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
     await circuit.assertOut(witness, expected);
   });
 });

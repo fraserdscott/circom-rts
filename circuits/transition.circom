@@ -4,40 +4,42 @@ include "./attack.circom";
 include "./move.circom";
 
 template Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
-    signal input healths[N];            // The health of each unit
-    signal input positions[N][D];       // The current position of each unit
+    signal input health_in[N];            // The current health of each unit
+    signal input position_in[N][D];       // The current position of each unit
+    signal output health_out[N];
+    signal output position_out[N][D]; 
+
     signal input vectors[N][D]; // The target position of each unit
-    signal output newHealths[N];
-    signal output newPositions[N][D]; 
 
     component attack = Attack(D, N, DAMAGE, ATTACK_RADIUS, bits);
-    attack.healths <== healths;
-    attack.positions <== positions;
+    attack.healths <== health_in;
+    attack.positions <== position_in;
 
     component move = Move(N, D, UNIT_RADIUS, SPEED, bits);
-    move.positions <== positions;
+    move.positions <== position_in;
     move.vectors <== vectors;
 
-    newHealths <== attack.newHealths;
-    newPositions <== move.newPositions;
+    health_out <== attack.newHealths;
+    position_out <== move.newPositions;
 }
 
 template Transitions(T, N, D, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
-    signal input healths[N];                // The health of each unit
-    signal input positions[N][D];           // The position of each unit
-    signal input vectors[T][N][D];  // The target position of each unit, per tick
-    signal output newHealths[N];
-    signal output newPositions[N][D];
+    signal input health_in[N];
+    signal input position_in[N][D];
+    signal output health_out[N];
+    signal output position_out[N][D];
+
+    signal input vectors[T][N][D];
     
     component transitions[T];
 
     for (var i=0; i < T; i++) {
         transitions[i] = Transition(D, N, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits);
-        transitions[i].healths <== i==0 ? healths : transitions[i-1].newHealths;
-        transitions[i].positions <== i==0 ? positions : transitions[i-1].newPositions;
+        transitions[i].health_in <== i==0 ? health_in : transitions[i-1].health_out;
+        transitions[i].position_in <== i==0 ? position_in : transitions[i-1].position_out;
         transitions[i].vectors <== vectors[i];
     }
 
-    newHealths <== transitions[T-1].newHealths;
-    newPositions <== transitions[T-1].newPositions;
+    health_out <== transitions[T-1].health_out;
+    position_out <== transitions[T-1].position_out;
 }

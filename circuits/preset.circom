@@ -6,8 +6,8 @@ include "./game.circom";
 // TODO: we need to bound the size of the map, because collison searching relies on the fixed bits
 // Hardcode damage etc.
 template Preset(E, DAMAGE, ATTACK_RADIUS, UNIT_RADIUS, SPEED, bits) {
-    var T = 3;
-    var N = 4;
+    var T = 10; // yey, we can simulate 10 seconds of gameplay...
+    var N = 6;
     var D = 2;
 
     signal input eventTick[E];
